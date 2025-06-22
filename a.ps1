@@ -63,13 +63,11 @@ foreach ($user in $userAccounts) {
 
     if ($principal -like "$computer\*") {
         Retry-Command { Set-LocalUser -Name $user -PasswordNeverExpires $true }
-
         if ($defaultDescription.Length -le 48) {
             Retry-Command { Set-LocalUser -Name $user -Description $defaultDescription }
         } else {
             Retry-Command { & net user "$user" /comment:"$defaultDescription" > $null 2>&1 }
         }
-
         Retry-Command { Enable-LocalUser -Name $user }
         $profilePath="$env:SystemDrive\Users\$user.$computer"
         if (-not (Test-Path $profilePath)) {
@@ -108,15 +106,15 @@ foreach ($user in $userAccounts) {
     Retry-Command { Add-LocalGroupMember -Group $adminGroup -Member $principal -ErrorAction SilentlyContinue }
     Retry-Command { Add-LocalGroupMember -Group $rdpGroup -Member $principal -ErrorAction SilentlyContinue }
 
-    $regPath='HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\SpecialAccounts\UserList'
+    $regPath='HKLM:\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon\\SpecialAccounts\\UserList'
     if (-not (Test-Path $regPath)) {
         New-Item -Path $regPath -Force > $null
     }
     Retry-Command { New-ItemProperty -Path $regPath -Name $user -PropertyType DWORD -Value 0 -Force > $null }
 
-    $profilePath="$env:SystemDrive\Users\$user"
+    $profilePath="$env:SystemDrive\\Users\\$user"
     if (-not (Test-Path $profilePath)) {
-        Retry-Command { robocopy "$env:SystemDrive\Users\Default" $profilePath /E /COPYALL /XJ > $null }
+        Retry-Command { robocopy "$env:SystemDrive\\Users\\Default" $profilePath /E /COPYALL /XJ > $null }
         Start-Sleep -Seconds 3
     }
     Retry-Command { attrib +h +s $profilePath }
@@ -146,11 +144,8 @@ $lines | Set-Content $configFile -Encoding Unicode
 Retry-Command { secedit /configure /db $dbFile /cfg $configFile /areas USER_RIGHTS /quiet }
 Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 
-Retry-Command { Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' -Name 'ShutdownWithoutLogon' -Value 0 -Type DWord }
-foreach ($k in 'HideShutdown','HideSleep','HideHibernate') {
-    Retry-Command { Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\PolicyManager\default\Start\$k" -Name 'Value' -Value 1 -Type DWord }
-}
-Retry-Command { Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Terminal Server' -Name 'fDenyTSConnections' -Value 0 -Type DWord }
+Retry-Command { Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' -Name 'ShutdownWithoutLogon' -Value 0 -Type DWord }
+Retry-Command { Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 0 -Type DWord }
 
 try { Enable-NetFirewallRule -Group $groupId -ErrorAction SilentlyContinue } catch { $errorCount++ }
 foreach ($name in $ruleNames) {
@@ -158,7 +153,7 @@ foreach ($name in $ruleNames) {
 }
 if ($errorCount -gt 0) {
     try {
-        $port = (Get-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name PortNumber).PortNumber
+        $port = (Get-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp' -Name PortNumber).PortNumber
     } catch { $port = 3389 }
     foreach ($proto in 'TCP','UDP') {
         if (-not (Get-NetFirewallRule -Name "RDP-$proto-In-Port$port" -ErrorAction SilentlyContinue)) {
