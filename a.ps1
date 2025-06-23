@@ -28,10 +28,12 @@ $ruleNames=@(
 )
 $errorCount=0
 function Retry-Command {
-    param ([ScriptBlock]$action,[int]$attempts=3,[int]$delay=5)
-    for ($i=1; $i -le $attempts; $i++) {
-        try { & $action; return }
-        catch {
+    param ([ScriptBlock]$action, [int]$attempts=3, [int]$delay=5)
+    for ($i = 1; $i -le $attempts; $i++) {
+        try {
+            & $action > $null 2>&1
+            return
+        } catch {
             if ($i -eq $attempts) { throw }
             Start-Sleep -Seconds $delay
         }
