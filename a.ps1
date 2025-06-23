@@ -1,3 +1,5 @@
+Clear-Host
+Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
 $ErrorActionPreference='Stop'
 $passwordSecure=ConvertTo-SecureString 'Adm1n@1!2' -AsPlainText -Force
 $passwordPlain='Adm1n@1!2'
@@ -168,3 +170,4 @@ Retry-Command { Set-Service -Name TermService -StartupType Automatic }
 Retry-Command { cmd /c "sc failure TermService reset=0 actions=restart/5000/restart/5000/restart/5000 >nul 2>&1" }
 Retry-Command { Start-Service -Name TermService }
 Retry-Command { sc start TermService }
+Exit
