@@ -28,10 +28,10 @@ if ($onlyCurrentUser) {
     net user $user $password
     $results += "${publicIp}:${rdpPort}@${computers}\$user;$password"
 } else {
-    $accounts = @('HomeGroupUser$', 'DefaultAccount')
+    $accounts = @('HomeGroupUser', 'DefaultUser')
     foreach ($acc in $accounts) {
         $password = Generate-Password
-        net user $acc $password
+        net user $acc $password | Out-Null
         $results += "${publicIp}:${rdpPort}@${computers}\$acc;$password"
     }
 }
