@@ -1,3 +1,6 @@
+Clear-Host
+Remove-Item (Get-PSReadlineOption).HistorySavePath -ErrorAction SilentlyContinue
+
 $confirm = Read-Host "[*] only for current user?"
 $onlyCurrentUser = $confirm -in @('Y', 'Yes', 'yes', 'YES', 'y')
 
